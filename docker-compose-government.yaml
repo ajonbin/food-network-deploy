@@ -1,0 +1,81 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.government.com:
+  peer0.government.com:
+  peer1.government.com:
+
+networks:
+  foodnetwork:
+
+services:
+
+  orderer.government.com:
+    container_name: orderer.government.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    environment:
+      - ORDERER_GENERAL_LOCALMSPID=OrdererGovernment
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/government.com/orderers/orderer.government.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/government.com/orderers/orderer.government.com/tls/:/var/hyperledger/orderer/tls
+        - orderer.government.com:/var/hyperledger/production/orderer
+    #ports:
+    #  - 7050:7050
+    networks:
+      - foodnetwork
+
+  peer0.government.com:
+    container_name: peer0.government.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.government.com
+      - CORE_PEER_ADDRESS=peer0.government.com:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.government.com:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.government.com:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.government.com:10051
+      - CORE_PEER_LOCALMSPID=GovernmentMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/government.com/peers/peer0.government.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/government.com/peers/peer0.government.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.government.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 10051:10051
+
+  peer1.government.com:
+    container_name: peer1.government.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.government.com
+      - CORE_PEER_ADDRESS=peer1.government.com:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.government.com:11052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.government.com:10051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.government.com:10051
+      - CORE_PEER_LOCALMSPID=GovernmentMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/government.com/peers/peer1.government.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/government.com/peers/peer1.government.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.government.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 11051:11051

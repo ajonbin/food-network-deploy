@@ -1,0 +1,22 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: transport.com
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: transport
+    Domain: transport.com
+    EnableNodeOUs: true
+    CA:
+      Hostname:  ca
+    Specs:
+      - Hostname: cargo.truck
+      - Hostname: refrigerated.truck
+    Users:
+      Count: 2

@@ -1,0 +1,73 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+    - &OrdererTransport
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: OrdererTransport
+
+        # ID to load the MSP definition as
+        ID: OrdererTransport
+
+        # MSPDir is the filesystem path which contains the MSP configuration
+        MSPDir: crypto-config/ordererOrganizations/transport.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererTransport.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererTransport.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererTransport.admin')"
+                
+    - &Transport
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: TransportMSP
+
+        # ID to load the MSP definition as
+        ID: TransportMSP
+
+        MSPDir: crypto-config/peerOrganizations/transport.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('TransportMSP.admin', 'TransportMSP.peer', 'TransportMSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('TransportMSP.admin', 'TransportMSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('TransportMSP.admin')"
+            Endorsement:
+                Type: Signature
+                Rule: "OR('TransportMSP.peer')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: cargo.truck.transport.com
+              Port: 14051

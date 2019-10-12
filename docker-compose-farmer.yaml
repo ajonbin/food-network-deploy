@@ -1,0 +1,178 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.farmer.com:
+  apple.farmer.com:
+  pear.farmer.com:
+  melon.farmer.com:
+
+networks:
+  foodnetwork:
+
+services:
+
+  couchdb0:
+    container_name: couchdb0
+    image: couchdb:2.3
+    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
+    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    #ports:
+    #  - "5984:5984"
+    networks:
+      - foodnetwork
+
+  couchdb1:
+    container_name: couchdb1
+    image: couchdb:2.3
+    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
+    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    #ports:
+    #  - "5984:5984"
+    networks:
+      - foodnetwork
+
+  couchdb2:
+    container_name: couchdb2
+    image: couchdb:2.3
+    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
+    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=admin
+    # Comment/Uncomment the port mapping if you want to hide/expose the CouchDB service,
+    # for example map it to utilize Fauxton User Interface in dev environments.
+    #ports:
+    #  - "5984:5984"
+    networks:
+      - foodnetwork
+
+  orderer.farmer.com:
+    container_name: orderer.farmer.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    environment:
+      - ORDERER_GENERAL_LOCALMSPID=OrdererFarmer
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/farmer.com/orderers/orderer.farmer.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/farmer.com/orderers/orderer.farmer.com/tls:/var/hyperledger/orderer/tls
+        - orderer.farmer.com:/var/hyperledger/production/orderer
+    #ports:
+    #  - 7050:7050
+    networks:
+      - foodnetwork
+
+  apple.farmer.com:
+    container_name: apple.farmer.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=apple.farmer.com
+      - CORE_PEER_ADDRESS=apple.farmer.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=apple.farmer.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=pear.farmer.com:8051 melon.farmer.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=apple.farmer.com:7051
+      - CORE_PEER_LOCALMSPID=FarmerMSP
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb0:5984
+      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+      # provide the credentials for ledger to connect to CouchDB.  The username and password must
+      # match the username and password set for the associated CouchDB.
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=admin
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/farmer.com/peers/apple.farmer.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/farmer.com/peers/apple.farmer.com/tls:/etc/hyperledger/fabric/tls
+        - apple.farmer.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 7051:7051
+    depends_on: 
+      - couchdb0
+
+  pear.farmer.com:
+    container_name: pear.farmer.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=pear.farmer.com
+      - CORE_PEER_ADDRESS=pear.farmer.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=pear.farmer.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=apple.farmer.com:7051 melon.farmer.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=apple.farmer.com:7051
+      - CORE_PEER_LOCALMSPID=FarmerMSP
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb1:5984
+      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+      # provide the credentials for ledger to connect to CouchDB.  The username and password must
+      # match the username and password set for the associated CouchDB.
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=admin
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/farmer.com/peers/pear.farmer.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/farmer.com/peers/pear.farmer.com/tls:/etc/hyperledger/fabric/tls
+        - pear.farmer.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 8051:8051
+    depends_on: 
+      - couchdb1
+
+  melon.farmer.com:
+    container_name: melon.farmer.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=melon.farmer.com
+      - CORE_PEER_ADDRESS=melon.farmer.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=melon.farmer.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=apple.farmer.com:7051 pear.farmer.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=apple.farmer.com:7051
+      - CORE_PEER_LOCALMSPID=FarmerMSP
+      - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb2:5984
+      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
+      # provide the credentials for ledger to connect to CouchDB.  The username and password must
+      # match the username and password set for the associated CouchDB.
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
+      - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=admin
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/farmer.com/peers/melon.farmer.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/farmer.com/peers/melon.farmer.com/tls:/etc/hyperledger/fabric/tls
+        - melon.farmer.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 9051:9051
+    depends_on: 
+      - couchdb2

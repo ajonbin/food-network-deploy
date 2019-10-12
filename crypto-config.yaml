@@ -1,0 +1,32 @@
+
+OrdererOrgs:
+  - Name: Orderer
+    Domain: farmer.com
+    Specs:
+      - Hostname: orderer
+  - Name: Orderer
+    Domain: supermarket.com
+    Specs:
+      - Hostname: orderer
+
+PeerOrgs:
+  - Name: farmer
+    Domain: farmer.com
+    EnableNodeOUs: true
+    CA:
+      Hostname:  ca
+    Specs:
+      - Hostname: apple
+      - Hostname: pear
+      - Hostname: melon
+    Users:
+      Count: 3
+  - Name: walmar
+    Domain: supermarket.com
+    EnableNodeOUs: true
+    CA:
+      Hostname:  ca
+    Template:
+      Count: 2
+    Users:
+      Count: 2

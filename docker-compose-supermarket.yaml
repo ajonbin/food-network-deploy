@@ -1,0 +1,81 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.supermarket.com:
+  peer0.supermarket.com:
+  peer1.supermarket.com:
+
+networks:
+  foodnetwork:
+
+services:
+
+  orderer.supermarket.com:
+    container_name: orderer.supermarket.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    environment:
+      - ORDERER_GENERAL_LOCALMSPID=OrdererSupermarket
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/supermarket.com/orderers/orderer.supermarket.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/supermarket.com/orderers/orderer.supermarket.com/tls/:/var/hyperledger/orderer/tls
+        - orderer.supermarket.com:/var/hyperledger/production/orderer
+    #ports:
+    #  - 7050:7050
+    networks:
+      - foodnetwork
+
+  peer0.supermarket.com:
+    container_name: peer0.supermarket.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.supermarket.com
+      - CORE_PEER_ADDRESS=peer0.supermarket.com:12051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:12051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.supermarket.com:12052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:12052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer1.supermarket.com:13051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.supermarket.com:12051
+      - CORE_PEER_LOCALMSPID=SupermarketMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/supermarket.com/peers/peer0.supermarket.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/supermarket.com/peers/peer0.supermarket.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.supermarket.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 12051:12051
+
+  peer1.supermarket.com:
+    container_name: peer1.supermarket.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer1.supermarket.com
+      - CORE_PEER_ADDRESS=peer1.supermarket.com:13051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:13051
+      - CORE_PEER_CHAINCODEADDRESS=peer1.supermarket.com:13052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:13052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.supermarket.com:12051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.supermarket.com:12051
+      - CORE_PEER_LOCALMSPID=SupermarketMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./crypto-config/peerOrganizations/supermarket.com/peers/peer1.supermarket.com/msp:/etc/hyperledger/fabric/msp
+        - ./crypto-config/peerOrganizations/supermarket.com/peers/peer1.supermarket.com/tls:/etc/hyperledger/fabric/tls
+        - peer1.supermarket.com:/var/hyperledger/production
+    networks:
+      - foodnetwork
+    ports:
+      - 13051:13051
